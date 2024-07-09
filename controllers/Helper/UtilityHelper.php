@@ -9,11 +9,10 @@ use Yii;
 class UtilityHelper
 {
 
-    public static function username(): string
+    public static function getUserInformation()
     {
 
-        $user = User::find()->where(['id'=>Yii::$app->user->id])->cache(7200)->one();
-        return $user->username;
+        return User::find()->where(['id'=>Yii::$app->user->id])->cache(7200)->one();
     }
 
     public static function loadTaskWithImage(string $task, string $userName)

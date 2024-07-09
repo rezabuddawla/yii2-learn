@@ -2,6 +2,8 @@
 
 namespace app\models;
 
+use app\controllers\Helper\RedisHelper;
+use app\controllers\Helper\UtilityHelper;
 use app\models\helper\BaseActiveRecord;
 use Yii;
 use yii\base\Exception;
@@ -73,6 +75,10 @@ class User extends BaseActiveRecord implements IdentityInterface
             ->one();
     }
 
+    public function afterSave($insert, $changedAttributes)
+    {
+        Yii::$app->cache->delete(RedisHelper::ALL_USER);
+    }
 
     /**
      * @throws NotSupportedException
@@ -159,5 +165,19 @@ class User extends BaseActiveRecord implements IdentityInterface
     public function getTasks1()
     {
         return $this->hasMany(Task::class, ['updated_by' => 'username']);
+    }
+
+    public static function getAllUser()
+    {
+        $userKey = RedisHelper::ALL_USER;
+        if (!($users = Yii::$app->cache->get($userKey))) {
+            $users = User::find()
+                ->select(['username', 'fullname'])
+                ->asArray()
+                ->all();
+            Yii::$app->cache->set($userKey, $users, 3600);
+        }
+
+        return $users;
     }
 }

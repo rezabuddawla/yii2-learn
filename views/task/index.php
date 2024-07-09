@@ -99,12 +99,12 @@ $this->params['footer'] = true;
                     const deleteForm = document.getElementById('delete-task-form');
 
                     deleteForm.addEventListener('submit', function(event) {
-                        event.preventDefault(); // Prevent the form from submitting immediately
+                        event.preventDefault();
 
                         const confirmation = confirm('Are you sure you want to delete this task?');
 
                         if (confirmation) {
-                            deleteForm.submit(); // Submit the form if the user confirms
+                            deleteForm.submit();
                         }
                     });
                 });

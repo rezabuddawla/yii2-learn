@@ -6,11 +6,13 @@
 
 /** @var app\models\TaskForm $model */
 
+use app\controllers\Helper\UtilityHelper;
 use yii\bootstrap5\ActiveForm;
 use yii\bootstrap5\Html;
 use yii\grid\GridView;
 use yii\helpers\ArrayHelper;
 use yii\helpers\StringHelper;
+use conquer\select2\Select2Widget;
 
 $this->title = 'Task Manager';
 $this->params['navbar'] = true;
@@ -86,8 +88,11 @@ $this->params['footer'] = true;
                                     'options' => ['enctype' => 'multipart/form-data'],
                                     'action' => "/site/create-task",
                                 ]);
-
-                                $usersOptions = ArrayHelper::map($users, 'username', 'fullname');
+                                $currentUser = UtilityHelper::getUserInformation()->username;
+                                $filteredUsers = array_filter($users, function($user) use ($currentUser) {
+                                    return $user['username'] != $currentUser;
+                                });
+                                $usersOptions = ArrayHelper::map((array)$filteredUsers, 'username', 'fullname');
 
                             ?>
                             <div class="row">

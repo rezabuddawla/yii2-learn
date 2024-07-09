@@ -19,7 +19,7 @@ $currentAction = Yii::$app->controller->action->id;
                             <a class="nav-link active" aria-current="page" href="/site/login">Login</a>
                         <?php } else { ?>
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <?= UtilityHelper::username() ?>
+                                <?= UtilityHelper::getUserInformation()->username ?>
                             </a>
                             <ul class="dropdown-menu">
                                 <li>

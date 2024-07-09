@@ -4,6 +4,7 @@ namespace app\controllers;
 
 use app\controllers\Helper\BaseController;
 use app\controllers\Helper\RedisHelper;
+use app\controllers\Helper\UtilityHelper;
 use app\models\RegisterForm;
 use app\models\Task;
 use app\models\TaskForm;
@@ -27,17 +28,9 @@ class SiteController extends BaseController
     public function actionIndex(): string
     {
         if (!Yii::$app->user->isGuest) {
-            $currentUser = Yii::$app->user->identity;
-            $cacheKeyUser = RedisHelper::DROPDOWN_USER_PREFIX.$currentUser->auth_key;
+            $currentUser = UtilityHelper::getUserInformation();
             $cacheKeyTask = RedisHelper::TASK_PREFIX.$currentUser->auth_key;
-            if (!($users = Yii::$app->cache->get($cacheKeyUser))) {
-                $users = User::find()
-                    ->select(['username', 'fullname'])
-                    ->where(['not', ['id' => $currentUser->id]])
-                    ->asArray()
-                    ->all();
-                Yii::$app->cache->set($cacheKeyUser, $users, 3600);
-            }
+            $users = User::getAllUser();
 
             if (!($tasks = Yii::$app->cache->get($cacheKeyTask))) {
                 $tasks = Task::find()
