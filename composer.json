@@ -20,7 +20,9 @@
         "yiisoft/yii2-symfonymailer": "~2.0.3",
       "ext-json": "*",
         "yiisoft/yii2-queue": "^2.3",
-        "yiisoft/yii2-redis": "~2.0.0"
+        "yiisoft/yii2-redis": "~2.0.0",
+        "kartik-v/yii2-widget-select2": "dev-master",
+        "conquer/select2": "*"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.1.0",
