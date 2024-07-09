@@ -49,6 +49,11 @@ $config = [
                 [
                     'class' => 'yii\log\FileTarget',
                     'levels' => ['error', 'warning'],
+
+//                    'categories' => ['yii\db\Command::execute', 'yii\db\Command::query'],
+//                    'logFile' => '@runtime/logs/queries.log',
+//                    'logVars' => [],
+
                 ],
             ],
         ],
