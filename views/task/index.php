@@ -98,14 +98,36 @@ $this->params['footer'] = true;
                 document.addEventListener('DOMContentLoaded', function() {
                     const deleteForm = document.getElementById('delete-task-form');
 
-                    deleteForm.addEventListener('submit', function(event) {
+                    deleteForm.addEventListener('click', function(event) {
                         event.preventDefault();
 
-                        const confirmation = confirm('Are you sure you want to delete this task?');
+                        const swalWithBootstrapButtons = Swal.mixin({
+                            customClass: {
+                                confirmButton: 'btn btn-success ms-2',
+                                cancelButton: 'btn btn-danger'
+                            },
+                            buttonsStyling: false
+                        });
 
-                        if (confirmation) {
-                            deleteForm.submit();
-                        }
+                        swalWithBootstrapButtons.fire({
+                            title: 'Are you sure?',
+                            text: "You won't be able to revert this!",
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Yes, delete it!',
+                            cancelButtonText: 'No, cancel!',
+                            reverseButtons: true
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                deleteForm.submit();
+                            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                                swalWithBootstrapButtons.fire({
+                                    title: 'Cancelled',
+                                    text: 'Your task is safe :)',
+                                    icon: 'error'
+                                });
+                            }
+                        });
                     });
                 });
 
