@@ -21,8 +21,7 @@
       "ext-json": "*",
         "yiisoft/yii2-queue": "^2.3",
         "yiisoft/yii2-redis": "~2.0.0",
-        "kartik-v/yii2-widget-select2": "dev-master",
-        "conquer/select2": "*"
+        "kartik-v/yii2-widget-select2": "dev-master"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.1.0",
