@@ -17,21 +17,23 @@ use yii\web\UnauthorizedHttpException;
 class TaskController extends BaseController
 {
 
-//    public function behaviors()
-//    {
-//        return [
-//            [
-//                'class' => 'yii\filters\HttpCache',
-//                'only' => ['view'],
-//                'etagSeed' => function ($action, $params) {
-//                    $task = \Yii::$app->request->get('task');
-//                    $user = UtilityHelper::getUserInformation();
-//                    $post = UtilityHelper::loadTaskWithImage($task, $user->username);
-//                    return serialize([$post->updated_at]);
-//                },
-//            ],
-//        ];
-//    }
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => 'yii\filters\HttpCache',
+                'only' => ['view'],
+                'etagSeed' => function ($action, $params) {
+                    $task = \Yii::$app->request->get('task');
+                    $user = UtilityHelper::getUserInformation();
+                    $post = UtilityHelper::loadTaskWithImage($task, $user->username);
+                    $flashMessages = \Yii::$app->session->getAllFlashes();
+                    $flashMessageState = serialize($flashMessages);
+                    return serialize([$post->updated_at, $flashMessageState]);
+                },
+            ],
+        ];
+    }
 
 
     public function actionView(string $task, bool $edit_mode)
@@ -109,6 +111,7 @@ class TaskController extends BaseController
     public function actionDelete(string $task){
         $user = UtilityHelper::getUserInformation();
         $fullTask = UtilityHelper::loadTaskWithImage($task, $user->username);
+//        dd($fullTask->taskImages);
         if (!$fullTask || ($fullTask->assignee !== $user->username && $fullTask->created_by !== $user->username)) {
             Yii::$app->session->setFlash('error', '<b>Unauthorized</b>');
             return $this->redirect(['/']);
@@ -118,17 +121,20 @@ class TaskController extends BaseController
 
 //            Yii::getLogger()->flushInterval = 1;
 //            Yii::getLogger()->messages = [];
-
-            $taskImagesUpdate = TaskImages::updateAll(
-                ['deleted_at' => New Expression('NOW()')],
-                ['task_id' => $fullTask->id]
-            );
-            if (!$taskImagesUpdate) {
-                throw new \Exception('Failed to delete associated task images.');
+            if ($fullTask->taskImages) {
+                $taskImagesUpdate = TaskImages::updateAll(
+                    ['deleted_at' => new Expression('NOW()')],
+                    ['task_id' => $fullTask->id]
+                );
+                if (!$taskImagesUpdate) {
+                    Yii::$app->session->setFlash('error',  'Failed to delete associated task images.');
+                    return $this->redirect(Yii::$app->request->referrer);
+                }
             }
 
             if (!$fullTask->softDelete()) {
-                throw new \Exception('Failed to delete the task.');
+                Yii::$app->session->setFlash('error',  'Failed to delete the task.');
+                return $this->redirect(Yii::$app->request->referrer);
             }
 
             $transaction->commit();
@@ -146,8 +152,11 @@ class TaskController extends BaseController
         } catch (\Exception $e) {
             $transaction->rollBack();
             Yii::$app->session->setFlash('error', $e->getMessage());
-            return $this->redirect(['/']);
+            $this->goHome();
         } catch (Throwable $e) {
+            $transaction->rollBack();
+            Yii::$app->session->setFlash('error', $e->getMessage());
+            $this->goHome();
         }
         return $this->redirect(['/']);
     }
