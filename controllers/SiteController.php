@@ -2,68 +2,55 @@
 
 namespace app\controllers;
 
+use app\components\TaskHelper;
+use app\components\UtilityHelper;
 use app\controllers\Helper\BaseController;
-use app\controllers\Helper\RedisHelper;
-use app\controllers\Helper\UtilityHelper;
+use app\models\LoginForm;
 use app\models\RegisterForm;
-use app\models\Task;
 use app\models\TaskForm;
 use app\models\User;
 use Yii;
 use yii\data\ActiveDataProvider;
 use yii\db\Exception;
+use yii\db\Query;
 use yii\web\Response;
-use app\models\LoginForm;
-use app\models\ContactForm;
 use yii\web\UploadedFile;
 
 class SiteController extends BaseController
 {
 
-    /**
-     * Displays homepage.
-     *
-     * @return string
-     */
     public function actionIndex(): string
     {
-        if (!Yii::$app->user->isGuest) {
-            $currentUser = UtilityHelper::getUserInformation();
-            $cacheKeyTask = RedisHelper::TASK_PREFIX.$currentUser->auth_key;
-            $users = User::getAllUser();
-
-            if (!($tasks = Yii::$app->cache->get($cacheKeyTask))) {
-                $tasks = Task::find()
-                    ->select(['title', 'slug', 'priority', 'created_by', 'description'])
-                    ->where(['assignee' => $currentUser->username])
-                    ->andWhere(['task.deleted_at' => null]);
-                Yii::$app->cache->set($cacheKeyTask, $tasks, 3600);
-            }
-            $model = new TaskForm();
-            $tasks = new ActiveDataProvider([
-                'query' => $tasks,
-            ]);
-            $ifHasTask = $tasks->getModels();
-            return $this->render('index',[
-                'users' => $users,
-                'model' => $model,
-                'tasks' => $ifHasTask ? $tasks : null,
-            ]);
+        if (Yii::$app->user->isGuest) {
+            return $this->render('index');
         }
-        return $this->render('index');
+
+        $tasks = new ActiveDataProvider([
+            'query' => TaskHelper::getTasksQuery(),
+        ]);
+        return $this->render('index', [
+            'model' => new TaskForm(),
+            'tasks' => $tasks->getModels() ? $tasks : null,
+        ]);
     }
 
-
-    public function action()
+    public function actionUserList($q = null, $id = null): array
     {
-
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        $out = ['results' => []];
+        if (!is_null($q)) {
+            $data = User::find()
+                    ->select(['id' => 'username', 'text' => 'fullname'])
+                    ->where(['like', 'fullname', $q])
+                    ->andWhere(['!=', 'id', UtilityHelper::getUserInformation()->id])
+                    ->limit(20)
+                    ->asArray()
+                    ->all();
+            $out['results'] = array_values($data);
+        }
+        return $out;
     }
 
-    /**
-     * Login action.
-     *
-     * @return Response|string
-     */
     public function actionLogin()
     {
         if (!Yii::$app->user->isGuest) {
@@ -105,7 +92,7 @@ class SiteController extends BaseController
     /**
      * @throws Exception
      */
-    public function actionCreateTask()
+    public function actionCreateTask(): Response
     {
         $model = new TaskForm();
 
@@ -126,13 +113,7 @@ class SiteController extends BaseController
         return $this->goHome();
     }
 
-
-    /**
-     * Logout action.
-     *
-     * @return Response
-     */
-    public function actionLogout()
+    public function actionLogout(): Response
     {
         Yii::$app->user->logout();
 
