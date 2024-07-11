@@ -2,13 +2,12 @@
 
 namespace app\models;
 
-use app\controllers\Helper\RedisHelper;
-use app\controllers\Helper\UtilityHelper;
+use app\components\RedisHelper;
 use app\models\helper\BaseActiveRecord;
 use Yii;
 use yii\base\Exception;
 use yii\base\NotSupportedException;
-use yii\db\ActiveRecord;
+use yii\db\ActiveQuery;
 use yii\web\IdentityInterface;
 
 /**
@@ -140,9 +139,9 @@ class User extends BaseActiveRecord implements IdentityInterface
     /**
      * Gets query for [[Tasks]].
      *
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
-    public function getTasks()
+    public function getTasks(): ActiveQuery
     {
         return $this->hasMany(Task::class, ['assignee' => 'username']);
     }
@@ -150,9 +149,9 @@ class User extends BaseActiveRecord implements IdentityInterface
     /**
      * Gets query for [[Tasks0]].
      *
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
-    public function getTasks0()
+    public function getTasks0(): ActiveQuery
     {
         return $this->hasMany(Task::class, ['created_by' => 'username']);
     }
@@ -160,9 +159,9 @@ class User extends BaseActiveRecord implements IdentityInterface
     /**
      * Gets query for [[Tasks1]].
      *
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
-    public function getTasks1()
+    public function getTasks1(): ActiveQuery
     {
         return $this->hasMany(Task::class, ['updated_by' => 'username']);
     }
