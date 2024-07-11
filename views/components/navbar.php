@@ -1,7 +1,8 @@
 <?php
 
-use app\controllers\Helper\UtilityHelper;
+use app\components\UtilityHelper;
 use app\views\components\HtmlHelper;
+
 $currentController = Yii::$app->controller->id;
 $currentAction = Yii::$app->controller->action->id;
 ?>
