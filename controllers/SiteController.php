@@ -106,8 +106,6 @@ class SiteController extends BaseController
                 Yii::$app->session->setFlash('success', 'Task created successfully.');
             } else {
                 Yii::$app->session->setFlash('error', 'Failed to create task.');
-                $errors = $model->errors;
-                Yii::error("Failed to create task: " . json_encode($errors));
             }
         }
         return $this->goHome();

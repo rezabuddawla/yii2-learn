@@ -1,5 +1,8 @@
 <?php
 
+use yii\web\JsonParser;
+use yii\web\UrlRule;
+
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
 
@@ -13,10 +16,18 @@ $config = [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
     ],
+    'modules' => [
+        'v1' => [
+            'class' => 'app\api\v1\Api',
+        ],
+    ],
     'components' => [
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => 'v2QDJC8M-K87rfF2PRFpRYJpGn23VdmR',
+            'parsers' => [
+                'application/json' => JsonParser::class,
+            ]
         ],
         'cache' => [
 //            'class' => 'yii\caching\FileCache',

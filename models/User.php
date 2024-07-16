@@ -3,11 +3,13 @@
 namespace app\models;
 
 use app\components\RedisHelper;
+use app\components\UtilityHelper;
 use app\models\helper\BaseActiveRecord;
 use Yii;
 use yii\base\Exception;
 use yii\base\NotSupportedException;
 use yii\db\ActiveQuery;
+use yii\web\HttpException;
 use yii\web\IdentityInterface;
 
 /**
@@ -18,12 +20,19 @@ use yii\web\IdentityInterface;
  * @property string $fullname
  * @property string $email
  * @property string $password_hash
+ * @property string $access_token
  * @property string $auth_key
  * @property string|null $created_at
  * @property string|null $updated_at
  */
 class User extends BaseActiveRecord implements IdentityInterface
 {
+
+    public function fields()
+    {
+        return ['username', 'fullname', 'email'];
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -80,11 +89,29 @@ class User extends BaseActiveRecord implements IdentityInterface
     }
 
     /**
-     * @throws NotSupportedException
+     * @throws HttpException
      */
-    public static function findIdentityByAccessToken($token, $type = null)
+    public static function findIdentityByAccessToken($token, $type = 'access')
     {
-        throw new NotSupportedException();
+
+        $tokenModel = ($type === 'refresh') ? RefreshToken::class : AccessToken::class;
+
+        $tokenRecord = $tokenModel::find()
+            ->where(['token' => $token])
+            ->one();
+
+        if (!$tokenRecord) {
+            throw new HttpException(404, 'Access token not found.');
+        }
+        $expiresAtTimestamp = strtotime($tokenRecord->expires_at);
+        if ($expiresAtTimestamp < time()) {
+            throw new HttpException(401, $type == 'access' ? 'Token has expired.' : 'Token has expired. You must login again');
+        }
+        $user = static::findOne(['id' => $tokenRecord->user_id]);
+        if (!$user) {
+            throw new HttpException(404, 'User not found. Please login again.');
+        }
+        return $user;
     }
 
     public function getId(): int
@@ -134,6 +161,11 @@ class User extends BaseActiveRecord implements IdentityInterface
         $this->auth_key = Yii::$app->security->generateRandomString();
     }
 
+    public function generateAccessToken()
+    {
+        $this->access_token = Yii::$app->security->generateRandomString();
+    }
+
 
     //---------------------------------------Relationship function-------------------------------------------\\
     /**
@@ -164,6 +196,21 @@ class User extends BaseActiveRecord implements IdentityInterface
     public function getTasks1(): ActiveQuery
     {
         return $this->hasMany(Task::class, ['updated_by' => 'username']);
+    }
+
+    public function getAccessTokens(): ActiveQuery
+    {
+        return $this->hasOne(AccessToken::class, ['user_id' => 'id']);
+    }
+
+    /**
+     * Gets query for [[RefreshTokens]].
+     *
+     * @return ActiveQuery
+     */
+    public function getRefreshTokens(): ActiveQuery
+    {
+        return $this->hasOne(RefreshToken::class, ['user_id' => 'id']);
     }
 
     public static function getAllUser()

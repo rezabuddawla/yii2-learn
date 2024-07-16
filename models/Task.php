@@ -30,6 +30,11 @@ use yii\db\Expression;
 class Task extends BaseActiveRecord
 {
 
+    public function fields()
+    {
+        return ['title', 'description', 'slug', 'priority', 'assignee', 'status', 'created_by', 'updated_by', 'taskImages'];
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -44,7 +49,7 @@ class Task extends BaseActiveRecord
     public function rules()
     {
         return [
-            [['title', 'slug', 'priority'], 'required'],
+            [['title', 'priority', 'assignee'], 'required'],
             [['description', 'priority', 'status'], 'string'],
             [['created_at', 'updated_at'], 'safe'],
             [['title', 'slug'], 'string', 'max' => 255],
